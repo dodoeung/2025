@@ -107,11 +107,14 @@ elif st.session_state.step==2:
         if st.button("⬅️ 이전 단계"): st.session_state.step=1
     with c2:
         if st.button("다음 단계 ▶"):
-            st.session_state.name=name.strip() if name else "익명"
-            st.session_state.age=age
-            st.session_state.gender=gender
-            st.session_state.grade=grade
-            st.session_state.step=3
+            if name.strip()=="":
+                st.warning("이름을 입력해주세요!")
+            else:
+                st.session_state.name=name.strip()
+                st.session_state.age=age
+                st.session_state.gender=gender
+                st.session_state.grade=grade
+                st.session_state.step=3
 
 # --------- STEP 3: 생활습관 선택 ----------
 elif st.session_state.step==3:
@@ -127,8 +130,11 @@ elif st.session_state.step==3:
         if st.button("⬅️ 이전 단계"): st.session_state.step=2
     with c2:
         if st.button("다음 단계 ▶"):
-            st.session_state.answers={"study_time":study_time,"exercise_freq":exercise_freq,"exercise_types":exercise_types,"meals":meals,"diet_flags":diet_flags}
-            st.session_state.step=4
+            if not study_time or not exercise_freq or not meals:
+                st.warning("모든 항목을 선택해주세요!")
+            else:
+                st.session_state.answers={"study_time":study_time,"exercise_freq":exercise_freq,"exercise_types":exercise_types,"meals":meals,"diet_flags":diet_flags}
+                st.session_state.step=4
 
 # --------- STEP 4: 자세/증상 선택 ----------
 elif st.session_state.step==4:
@@ -141,15 +147,17 @@ elif st.session_state.step==4:
         if st.button("⬅️ 이전 단계"): st.session_state.step=3
     with c2:
         if st.button("🔍 결과 확인하기"):
-            st.session_state.answers.update({"posture":posture,"symptoms":[s for s in symptoms if s!="없음"]})
-            st.session_state.step=5
+            if not posture:
+                st.warning("공부 자세를 선택해주세요!")
+            else:
+                st.session_state.answers.update({"posture":posture,"symptoms":[s for s in symptoms if s!="없음"]})
+                st.session_state.step=5
 
 # --------- STEP 5: 결과 화면 ----------
 elif st.session_state.step==5:
     answers=st.session_state.answers
     score,category=compute_score(answers)
     emoji="😍" if category=="매우 좋음" else "🙂" if category=="보통" else "😥"
-    # 말풍선 색
     bubble_color="#FFD700" if category=="매우 좋음" else "#87CEEB" if category=="보통" else "#FF6B6B"
     st.markdown(f"<div class='bubble' style='background:{bubble_color};'>{emoji} {category}! 점수: {score}점</div>",unsafe_allow_html=True)
     tips=pick_feedback(answers["symptoms"]) if answers["symptoms"] else ["수분 섭취","수면 루틴","가벼운 운동"]
