@@ -3,16 +3,16 @@ from PIL import Image, ImageDraw, ImageFont
 import io, textwrap, random, datetime
 
 # --------- 초기 설정 ----------
-st.set_page_config(page_title="학생 건강 진단 & 보충 플랜카드 💖", page_icon="🩺", layout="wide")
+st.set_page_config(page_title="학생 건강 진단 & 보충 플랜 💖", page_icon="🩺", layout="wide")
 
 # --------- 스타일 ----------
 st.markdown("""
 <style>
 .stApp {background: linear-gradient(135deg,#FFF0F6 0%,#E7F5FF 55%,#FFF9DB 100%);}
-.glass {background: rgba(255,255,255,0.65); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.6); box-shadow:0 8px 30px rgba(0,0,0,0.08); border-radius:24px; padding:1.2rem 1.4rem;}
-.tag {display:inline-block;padding:.25rem .6rem;margin:.15rem .25rem;border-radius:999px;font-size:.85rem;background:#fff;border:1px solid rgba(0,0,0,.06);}
-.pill {background:#09090b; color:#fff; border-radius:999px; padding:.35rem .7rem; font-size:.8rem;}
-.title-emoji { font-size:2rem; }
+.glass {background: rgba(255,255,255,0.65); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.6); box-shadow:0 8px 30px rgba(0,0,0,0.08); border-radius:24px; padding:1.2rem 1.4rem; margin-bottom:1rem;}
+.card {background:#fff; border-radius:16px; padding:1rem; margin-bottom:1rem; box-shadow:0 5px 15px rgba(0,0,0,0.05);}
+.bubble {padding:1rem 1.4rem; border-radius:16px; display:inline-block; font-size:1.5rem; animation: float 1.5s ease infinite;}
+@keyframes float {0%,100%{transform:translateY(0px);}50%{transform:translateY(-10px);}}
 </style>
 """, unsafe_allow_html=True)
 
@@ -20,10 +20,10 @@ def section_card(title, body, emoji="✨"):
     st.markdown(f"""
     <div class='glass'>
         <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.35rem;">
-            <span class="title-emoji">{emoji}</span>
+            <span>{emoji}</span>
             <h4 style="margin:0">{title}</h4>
         </div>
-        <div style="font-size:1rem;line-height:1.5">{body}</div>
+        <div>{body}</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -46,7 +46,6 @@ FEEDBACK_POOLS = {
     "😣 집중력 저하": ["포모도로(25분 집중+5분 휴식)","장소·시간대 변경","수분 섭취 늘리기","운동으로 혈류 올리기"],
     "😴 불면": ["취침 1시간 전 화면 줄이기","수면 루틴 일정","카페인 오후 피하기","저강도 스트레칭/명상"],
     "피로감 지속": ["수면 7~8시간 확보","단백질·채소 섭취 늘리기","공부 블록 나누기","가벼운 유산소 운동"],
-    "🪶 목 통증": ["화면 눈높이 50~70cm","턱 당기기/측굴 스트레칭","스마트폰 고개 숙임 줄이기","찜질"],
     "🖐 손발 저림": ["자세 교정","스트레칭/손 쥐기·펴기","조이는 신발/밴드 피하기","수분·전해질 유지"]
 }
 
@@ -86,14 +85,12 @@ def compute_score(answers):
 
 # --------- STEP 1: 처음 화면 ----------
 if st.session_state.step==1:
-    st.markdown("""
-    <h1 style='text-align:center; font-size:2.2rem;'>📚 스터디 업, 건강 업 🏥<br>병원에 온 걸 환영해요! 🎉</h1>
-    <p style='text-align:center; font-size:1.1rem;'>여러분의 건강 상태를 체크하고, 나만의 보충 플랜을 만들어 볼까요? 🧸🍎🏃‍♂️</p>
-    """, unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align:center; font-size:2.2rem;'>📚 스터디 업, 건강 업 🏥<br>병원에 온 걸 환영해요! 🎉</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center;'>여러분의 건강 상태를 체크하고, 나만의 보충 플랜을 만들어 볼까요? 🧸🍎🏃‍♂️</p>", unsafe_allow_html=True)
     if st.button("✨ 진단 시작하기 ✨", use_container_width=True):
         st.session_state.step=2
 
-# --------- STEP 2: 정보/습관/증상 입력 ----------
+# --------- STEP 2: 기본 정보 ----------
 elif st.session_state.step==2:
     st.markdown("### 👤 기본 정보 입력")
     col1,col2=st.columns([1.2,1])
@@ -105,77 +102,121 @@ elif st.session_state.step==2:
     with col2:
         section_card("Tip","솔직하게 입력하면 더 정확해요! 😄","💡")
     st.markdown("---")
-    if st.button("다음 단계 ▶",use_container_width=True):
-        st.session_state.name=name.strip() if name else "익명"
-        st.session_state.age=age
-        st.session_state.gender=gender
-        st.session_state.grade=grade
-        st.session_state.step=3
-
-# --------- STEP 3: 생활습관 & 증상 ----------
-elif st.session_state.step==3:
-    st.markdown("### 📋 생활 습관 & 증상 선택")
     c1,c2=st.columns(2)
     with c1:
-        study_time=st.radio("오늘 공부 시간은?", ["2시간 이하","3~5시간","6~8시간","9시간 이상"])
-        exercise_freq=st.radio("운동 빈도는?",["전혀 안 함","가끔(주1~2회)","자주(주3회 이상)"])
-        exercise_types=st.multiselect("주로 하는 운동",EX_TYPES)
-        meals=st.radio("식사 습관",MEAL_PATTERNS[:3])
-        diet_flags=st.multiselect("추가 식습관",MEAL_PATTERNS[3:])
+        if st.button("⬅️ 이전 단계"): st.session_state.step=1
     with c2:
-        posture=st.radio("공부 자세",["바른 자세","허리 굽힘","고개 숙임","다리 꼬고 앉음","자주 움직임"])
-        symptoms=st.multiselect("공부 중/후 느끼는 이상",SYMPTOMS,default=[])
-    st.markdown("---")
-    if st.button("🔍 결과 확인하기",use_container_width=True):
-        st.session_state.answers={"study_time":study_time,"exercise_freq":exercise_freq,"exercise_types":exercise_types,"meals":meals,"diet_flags":diet_flags,"posture":posture,"symptoms":[s for s in symptoms if s!="없음"]}
-        st.session_state.step=4
+        if st.button("다음 단계 ▶"):
+            st.session_state.name=name.strip() if name else "익명"
+            st.session_state.age=age
+            st.session_state.gender=gender
+            st.session_state.grade=grade
+            st.session_state.step=3
 
-# --------- STEP 4: 결과 + 진단서 생성 ----------
+# --------- STEP 3: 생활습관 선택 ----------
+elif st.session_state.step==3:
+    st.markdown("### 🏃 생활 습관 선택")
+    study_time=st.radio("오늘 공부 시간은?", ["2시간 이하","3~5시간","6~8시간","9시간 이상"])
+    exercise_freq=st.radio("운동 빈도는?",["전혀 안 함","가끔(주1~2회)","자주(주3회 이상)"])
+    exercise_types=st.multiselect("주로 하는 운동",EX_TYPES)
+    meals=st.radio("식사 습관",MEAL_PATTERNS[:3])
+    diet_flags=st.multiselect("추가 식습관",MEAL_PATTERNS[3:])
+    st.markdown("---")
+    c1,c2=st.columns(2)
+    with c1:
+        if st.button("⬅️ 이전 단계"): st.session_state.step=2
+    with c2:
+        if st.button("다음 단계 ▶"):
+            st.session_state.answers={"study_time":study_time,"exercise_freq":exercise_freq,"exercise_types":exercise_types,"meals":meals,"diet_flags":diet_flags}
+            st.session_state.step=4
+
+# --------- STEP 4: 자세/증상 선택 ----------
 elif st.session_state.step==4:
+    st.markdown("### 🪑 공부 자세 & 증상 선택")
+    posture=st.radio("공부 자세",["바른 자세","허리 굽힘","고개 숙임","다리 꼬고 앉음","자주 움직임"])
+    symptoms=st.multiselect("공부 중/후 느끼는 이상",SYMPTOMS,default=[])
+    st.markdown("---")
+    c1,c2=st.columns(2)
+    with c1:
+        if st.button("⬅️ 이전 단계"): st.session_state.step=3
+    with c2:
+        if st.button("🔍 결과 확인하기"):
+            st.session_state.answers.update({"posture":posture,"symptoms":[s for s in symptoms if s!="없음"]})
+            st.session_state.step=5
+
+# --------- STEP 5: 결과 화면 ----------
+elif st.session_state.step==5:
     answers=st.session_state.answers
     score,category=compute_score(answers)
     emoji="😍" if category=="매우 좋음" else "🙂" if category=="보통" else "😥"
-    st.markdown(f"<h2 style='text-align:center;'>🩺 {st.session_state.name}의 보충 진단서 ({emoji})</h2>",unsafe_allow_html=True)
-    st.markdown(f"**점수/상태:** {score}점 / {category}")
+    # 말풍선 색
+    bubble_color="#FFD700" if category=="매우 좋음" else "#87CEEB" if category=="보통" else "#FF6B6B"
+    st.markdown(f"<div class='bubble' style='background:{bubble_color};'>{emoji} {category}! 점수: {score}점</div>",unsafe_allow_html=True)
     tips=pick_feedback(answers["symptoms"]) if answers["symptoms"] else ["수분 섭취","수면 루틴","가벼운 운동"]
-    st.markdown("### 맞춤 조언/충고 📝")
-    for t in tips: st.markdown(f"• {t}")
+    st.markdown("---")
+    if st.button("📄 진단서 확인하기"):
+        st.session_state.step=6
 
-    # PNG 다운로드
-    def render_certificate_png():
-        W,H=900,1300
-        img=Image.new("RGB",(W,H),(255,252,248))
+# --------- STEP 6: 진단서 확인 ----------
+elif st.session_state.step==6:
+    def render_fun_certificate(name, score, category, answers, tips):
+        W,H=1000,1400
+        img=Image.new("RGB",(W,H),(255,252,240))
         draw=ImageDraw.Draw(img)
-        card_pad=40
-        draw.rounded_rectangle([card_pad,card_pad,W-card_pad,H-card_pad],radius=36,fill=(255,255,255),outline=(230,230,230),width=3)
-        title=ImageFont.load_default()
-        body=ImageFont.load_default()
-        y=70
-        draw.text((60,y),f"{st.session_state.name}의 보충 진단서 ({datetime.date.today()})",font=title,fill=(30,30,30))
-        y+=30; draw.line([(60,y),(W-60,y)],fill=(230,230,230),width=2); y+=20
-        draw.text((60,y),f"점수/상태: {score}점 / {category}",font=body,fill=(40,40,40))
-        y+=32
-        summary=[f"공부: {answers['study_time']}",f"운동: {answers['exercise_freq']} / {', '.join(answers['exercise_types']) if answers['exercise_types'] else '선택 없음'}",f"식사: {answers['meals']} {', '.join(answers['diet_flags']) if answers['diet_flags'] else ''}",f"자세: {answers['posture']}",f"증상: {', '.join(answers['symptoms']) if answers['symptoms'] else '없음'}"]
-        for line in summary: draw.text((60,y),line,font=body,fill=(50,50,50)); y+=22
-        y+=12; draw.line([(60,y),(W-60,y)],fill=(235,235,235),width=1); y+=18
-        rec_food="추천 음식: 단백질, 채소/과일, 통곡물, 견과류, 물 자주"
-        rec_ex="추천 운동: 걷기·스트레칭 10~15분/일, 주 2~3회 가벼운 근력·유산소 혼합"
-        for para in [rec_food,rec_ex]:
-            for t in textwrap.wrap(para,48):
-                draw.text((60,y),t,font=body,fill=(60,60,60)); y+=22
-            y+=6
-        y+=6; draw.text((60,y),"맞춤 조언/충고:",font=title,fill=(30,30,30)); y+=26
+        line_color=(220,220,220)
+        top_pad, line_gap=180,50
+        for y in range(top_pad,H-200,line_gap):
+            draw.line([(60,y),(W-60,y)],fill=line_color,width=1)
+        try:
+            title_font=ImageFont.truetype("arialbd.ttf",52)
+            body_font=ImageFont.truetype("arial.ttf",28)
+        except:
+            title_font=ImageFont.load_default()
+            body_font=ImageFont.load_default()
+        draw.text((60,50),f"🩺 {name}의 보충 진단서 🌟",font=title_font,fill=(50,50,50))
+        y_pos=top_pad
+        draw.text((70,y_pos),f"📊 점수 / 상태: {score}점 / {category}",font=body_font,fill=(30,30,60))
+        y_pos+=line_gap
+        study_text=f"📚 오늘 공부 시간: {answers['study_time']}, 자세: {answers['posture']}"
+        draw.text((70,y_pos),study_text,font=body_font,fill=(60,30,60))
+        y_pos+=line_gap
+        ex_list=', '.join(answers['exercise_types']) if answers['exercise_types'] else "선택 없음"
+        exercise_text=f"🏃 운동 빈도: {answers['exercise_freq']}, 종류: {ex_list}"
+        draw.text((70,y_pos),exercise_text,font=body_font,fill=(30,60,30))
+        y_pos+=line_gap
+        meal_text=f"🍎 식사: {answers['meals']} {'/'.join(answers['diet_flags']) if answers['diet_flags'] else ''}"
+        draw.text((70,y_pos),meal_text,font=body_font,fill=(150,50,30))
+        y_pos+=line_gap
+        symptoms_text=f"⚠️ 증상: {', '.join(answers['symptoms']) if answers['symptoms'] else '없음'}"
+        draw.text((70,y_pos),symptoms_text,font=body_font,fill=(180,30,30))
+        y_pos+=line_gap+20
+        foods=["🥦 채소","🍓 과일","🥜 견과류","🍗 단백질","💧 물 충분히"]
+        draw.text((70,y_pos),"🍽️ 추천 음식: "+', '.join(foods),font=body_font,fill=(30,90,60))
+        y_pos+=line_gap
+        exercises=["🧘 요가/스트레칭 10분","🏃 가벼운 걷기","💪 근력 운동 15분"]
+        draw.text((70,y_pos),"🏋️ 추천 운동/스트레칭: "+', '.join(exercises),font=body_font,fill=(30,60,90))
+        y_pos+=line_gap
+        draw.text((70,y_pos),"💡 맞춤 조언/충고:",font=body_font,fill=(100,30,80))
+        y_pos+=35
         for tip in tips:
-            for t in textwrap.wrap("• "+tip,54): draw.text((80,y),t,font=body,fill=(55,55,55)); y+=22
-            y+=2
-        bio=io.BytesIO(); img.save(bio,format="PNG"); bio.seek(0); return bio
+            wrapped=textwrap.wrap("• "+tip, width=45)
+            for line in wrapped:
+                draw.text((90,y_pos),line,font=body_font,fill=(60,60,60))
+                y_pos+=30
+            y_pos+=10
+        draw.ellipse((W-220,H-180,W-80,H-40),fill=(255,100,100),outline=(200,50,50),width=4)
+        draw.text((W-200,H-150),"🔖 건강관리팀",font=body_font,fill=(255,255,255))
+        bio=io.BytesIO()
+        img.save(bio,format="PNG")
+        bio.seek(0)
+        return bio
 
-    png_bytes=render_certificate_png()
-    st.download_button("🖼️ 진단서 PNG 다운로드",data=png_bytes,file_name="my_health_plan_card.png",mime="image/png",use_container_width=True)
-
+    png_bytes=render_fun_certificate(st.session_state.name, score, category, answers, tips)
+    st.image(png_bytes, use_column_width=True)
+    st.download_button("🖼️ 진단서 PNG 다운로드", data=png_bytes, file_name="my_health_certificate.png", mime="image/png")
     st.markdown("---")
     c1,c2=st.columns(2)
     with c1: 
-        if st.button("⬅️ 결과 수정하기"): st.session_state.step=3
+        if st.button("⬅️ 이전 단계"): st.session_state.step=5
     with c2: 
         if st.button("🔄 처음으로"): st.session_state.step=1
