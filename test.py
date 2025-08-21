@@ -1,158 +1,157 @@
 import streamlit as st
-from pathlib import Path
-from fpdf import FPDF
-import base64
+import random
 
-# ----------------------------- 앱 기본 설정 -----------------------------
-st.set_page_config(page_title="스터디 업 건강 업 병원", page_icon="🩺", layout="centered")
+# 앱 기본 설정
+st.set_page_config(page_title="스터디 업 건강 업 병원 💉", page_icon="🩺", layout="centered")
 
-# ----------------------------- 스타일 -----------------------------
-st.markdown("""
-    <style>
-        body {
-            background-color: #FFF0F5;
-        }
-        .heart-button {
-            display: inline-block;
-            font-size: 22px;
-            padding: 0.4em 1em;
-            margin: 8px;
-            border: 2px solid pink;
-            border-radius: 30px;
-            background-color: #ffe4e1;
-            color: #d6336c;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease-in-out;
-        }
-        .heart-button:hover {
-            background-color: #ffccd5;
-        }
-        .balloon {
-            background-color: #fff9c4;
-            border: 2px dashed #f48fb1;
-            border-radius: 20px;
-            padding: 20px;
-            font-size: 18px;
-            margin: 20px 0;
-        }
-        .paper {
-            background-image: repeating-linear-gradient(white, white 30px, #f0f0f0 31px);
-            border: 2px solid #ddd;
-            padding: 20px;
-            border-radius: 10px;
-            font-family: 'Courier New';
-        }
-    </style>
-""", unsafe_allow_html=True)
+# 애니메이션 효과용 이모지
+sparkle = "✨"
+stars = "🌟"
 
-# ----------------------------- 상태 초기화 -----------------------------
-if "step" not in st.session_state:
+# 페이지 상태 초기화
+if 'step' not in st.session_state:
     st.session_state.step = 0
+if 'answers' not in st.session_state:
     st.session_state.answers = {}
 
-# ----------------------------- 질문 리스트 -----------------------------
+# 질문 리스트
 questions = [
-    ("오늘 하루 공부 시간은 얼마나 되나요?", ["1시간 이하", "2~3시간", "4~5시간", "6시간 이상"]),
-    ("어떤 운동을 주로 하나요?", ["🏃‍♀️ 달리기", "🏋️‍♂️ 헬스", "🧘 요가", "🚫 안 해요"]),
-    ("자주 먹는 음식 종류는?", ["🍚 밥", "🍞 빵", "🍜 면", "🍗 고기", "🍭 간식만 먹어요"]),
-    ("요즘 느끼는 증상은 무엇인가요?", ["🖐️ 손목 통증", "🦵 종아리 붓기", "👀 눈 피로", "💤 졸림", "🧠 두통", "😣 허리 통증"]),
-    ("공부할 때의 자세는?", ["🪑 바른 자세 유지", "💻 구부정한 자세", "📱 누워서 공부"]) 
+    {
+        "question": "공부는 하루에 몇 시간 정도 해요?",
+        "key": "study_time",
+        "options": ["📘 1시간 이하", "📗 2~3시간", "📕 4~6시간", "📙 7시간 이상"]
+    },
+    {
+        "question": "요즘 주로 하는 운동은 뭐예요?",
+        "key": "exercise",
+        "options": ["🏃 달리기", "💪 헬스", "🧘 요가/스트레칭", "🚫 운동 안 해요"]
+    },
+    {
+        "question": "식사는 어떻게 하고 있어요?",
+        "key": "diet",
+        "options": ["🍚 밥 위주", "🍞 빵 위주", "🍜 면 위주", "🍗 고기 위주", "🍭 간식 위주"]
+    },
+    {
+        "question": "공부할 때 주로 어떤 증상이 느껴져요?",
+        "key": "symptom",
+        "options": ["🖐️ 손목 통증", "👀 눈 피로", "🧠 두통", "🦵 종아리 붓기", "😵 어깨 결림"]
+    },
+    {
+        "question": "공부할 때 주로 어떤 자세인가요?",
+        "key": "posture",
+        "options": ["🪑 바른 자세 유지", "💻 구부정한 자세", "📱 누워서 공부"]
+    },
 ]
 
-# ----------------------------- 첫 화면 -----------------------------
+# 증상별 피드백
+symptom_feedback = {
+    "🖐️ 손목 통증": "손목 스트레칭을 해주고, 손목 받침대를 써보세요!",
+    "👀 눈 피로": "20분 공부 후 20초 동안 먼 곳을 바라보는 습관을 들이세요!",
+    "🧠 두통": "휴식이 필요해요! 물도 충분히 마시고 스트레칭도 해보세요.",
+    "🦵 종아리 붓기": "가볍게 다리 스트레칭을 하거나 자리에서 일어나 움직이세요!",
+    "😵 어깨 결림": "어깨를 돌려주는 스트레칭과 바른 자세를 유지해보세요!"
+}
+
+# 식단 피드백
+diet_feedback = {
+    "🍚 밥 위주": "균형 잡힌 식사를 유지하고 있어요! 좋아요!",
+    "🍞 빵 위주": "탄수화물 위주의 식사! 단백질과 채소를 추가해보세요!",
+    "🍜 면 위주": "면만 먹으면 영양 불균형이 올 수 있어요! 밥도 챙겨 먹어요~",
+    "🍗 고기 위주": "단백질은 좋지만 채소도 함께 먹어줘야 해요!",
+    "🍭 간식 위주": "간식만 먹지 말고 정식 식사를 꼭 챙기도록 해요!"
+}
+
+# 자세 피드백
+posture_feedback = {
+    "🪑 바른 자세 유지": "🪑 바른 자세 최고! 지금처럼 유지해요!",
+    "💻 구부정한 자세": "💻 등과 목에 무리 가요! 바른 자세로 허리를 펴 보세요!",
+    "📱 누워서 공부": "📱 누워서 공부는 집중력 저하와 건강에 안 좋아요! 책상에 앉아서 해요!"
+}
+
+# 시작 페이지
 if st.session_state.step == 0:
-    st.markdown("""
-    <h1 style='text-align: center;'>🎓 스터디 업 건강 업 병원에 온 걸 환영해요! 🏥</h1>
-    <p style='text-align: center;'>당신의 건강을 체크하고, 귀여운 보충 진단서를 받아보세요! 💖</p>
-    <div style='text-align: center;'>
-        <img src='https://media.giphy.com/media/l0HlQ7LRal6C3RZ6w/giphy.gif' width='250'>
-    </div>
+    st.markdown(f"""
+        <div style='text-align: center;'>
+            <h1>{sparkle} 스터디 업 건강 업 병원에 온 걸 환영해요! {sparkle}</h1>
+            <p>귀엽고 건강하게 공부 습관을 체크해봐요!</p>
+            <img src='https://media.tenor.com/JBgYzQHm3rYAAAAi/kawaii.gif' width='200'>
+        </div>
     """, unsafe_allow_html=True)
 
-    name = st.text_input("이름을 입력하세요")
-    age = st.number_input("나이", 6, 20)
-    gender = st.radio("성별", ["여자", "남자", "기타"])
-    grade = st.selectbox("학년", ["초등학생", "중학생", "고등학생"])
+    with st.form("user_info"):
+        name = st.text_input("이름을 입력해주세요")
+        age = st.number_input("나이", min_value=6, max_value=20, step=1)
+        gender = st.radio("성별", ["여자", "남자", "기타"])
+        grade = st.selectbox("학년", ["초등학생", "중학생", "고등학생"])
+        submitted = st.form_submit_button("진단 시작하기 💖")
+        if submitted:
+            st.session_state.user = {"name": name, "age": age, "gender": gender, "grade": grade}
+            st.session_state.step = 1
 
-    if st.button("🩺 진단 시작하기"):
-        st.session_state.name = name
-        st.session_state.age = age
-        st.session_state.gender = gender
-        st.session_state.grade = grade
-        st.session_state.step = 1
-
-# ----------------------------- 질문 단계 -----------------------------
+# 질문 단계
 elif 1 <= st.session_state.step <= len(questions):
-    q_idx = st.session_state.step - 1
-    question, options = questions[q_idx]
+    q = questions[st.session_state.step - 1]
+    st.markdown(f"""
+        <div style='background-color:#FFF0F5; padding:20px; border-radius:15px;'>
+            <h2>{stars} {q['question']}</h2>
+        </div>
+    """, unsafe_allow_html=True)
 
-    st.markdown(f"<h3>{question}</h3>", unsafe_allow_html=True)
-
-    for opt in options:
-        if st.button(f"❤️ {opt}", key=f"{q_idx}_{opt}"):
-            st.session_state.answers[question] = opt
+    for option in q['options']:
+        if st.button(option, key=option):
+            st.session_state.answers[q['key']] = option
             st.session_state.step += 1
-            st.rerun()
+            st.experimental_rerun()
 
-# ----------------------------- 결과 보여주기 (말풍선) -----------------------------
-elif st.session_state.step == len(questions)+1:
-    st.markdown("<div class='balloon'>✅ <b>진단 결과 요약</b><br>", unsafe_allow_html=True)
-    for q, ans in st.session_state.answers.items():
-        st.markdown(f"<b>{q}</b>: {ans}<br>", unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+# 결과 출력 단계 (말풍선)
+elif st.session_state.step == len(questions) + 1:
+    st.markdown(f"""
+        <div style='padding:20px;'>
+            <h2>🗨️ 진단 결과 요약</h2>
+            <div style='background:#D1F2EB; padding:20px; border-radius:20px;'>
+                <p><b>{st.session_state.user['name']}</b> 님의 건강 상태를 분석했어요!</p>
+                <ul>
+                    <li>📚 공부 시간: {st.session_state.answers.get("study_time")}</li>
+                    <li>🏃 운동: {st.session_state.answers.get("exercise")}</li>
+                    <li>🍽️ 식사: {st.session_state.answers.get("diet")}</li>
+                    <li>😖 증상: {st.session_state.answers.get("symptom")}</li>
+                    <li>🧍 자세: {st.session_state.answers.get("posture")}</li>
+                </ul>
+            </div>
+        </div>
+        <br>
+        <center><button onclick="window.location.reload()">🔁 다시 시작하기</button></center>
+    """, unsafe_allow_html=True)
 
-    if st.button("📋 진단서 보기"):
+    if st.button("📄 나의 보충 플랜카드 진단서 만들기"):
         st.session_state.step += 1
-        st.rerun()
 
-# ----------------------------- 진단서 -----------------------------
-elif st.session_state.step == len(questions)+2:
-    name = st.session_state.name
-    st.markdown(f"<h2>📄 {name}의 건강 보충 진단서</h2>", unsafe_allow_html=True)
-    st.markdown("<div class='paper'>", unsafe_allow_html=True)
+# 진단서 단계
+elif st.session_state.step == len(questions) + 2:
+    name = st.session_state.user['name']
+    symptom = st.session_state.answers.get("symptom", "")
+    diet = st.session_state.answers.get("diet", "")
+    posture = st.session_state.answers.get("posture", "")
 
-    answers = st.session_state.answers
-    study = answers.get(questions[0][0], "")
-    food = answers.get(questions[2][0], "")
-    symptom = answers.get(questions[3][0], "")
-    posture = answers.get(questions[4][0], "")
-
-    posture_tip = {
-        "🪑 바른 자세 유지": "🪑 바른 자세 최고! 지금처럼 유지해요!",
-        "💻 구부정한 자세": "💻 등과 목에 무리 가요! 바른 자세로 허리를 펴 보세요!",
-        "📱 누워서 공부": "📱 누워서 공부는 집중력 저하와 건강에 안 좋아요! 책상에 앉아서 해요!"
-    }.get(posture, "")
+    symptom_tip = symptom_feedback.get(symptom, "")
+    diet_tip = diet_feedback.get(diet, "")
+    posture_tip = posture_feedback.get(posture, "")
 
     st.markdown(f"""
-    🔎 <b>주요 증상:</b> {symptom}<br>
-    🍱 <b>식습관:</b> {food} — 골고루 먹는 습관을 들이면 건강해져요!<br>
-    📖 <b>공부 시간:</b> {study} — 너무 길면 쉬는 시간도 꼭 챙기세요!<br>
-    🪑 <b>공부 자세 조언:</b> {posture_tip}<br><br>
-    ✅ <b>추가 팁:</b> 매일 물 마시기 💧, 스트레칭 🧘, 충분한 수면 😴<br><br>
-    💌 <b>응원 메시지:</b> 오늘도 진단받느라 수고했어요! 당신은 멋진 사람이에요 💖 화이팅! 🚀<br><br>
-    🔖 <b>진단 도장:</b> <span style='font-size:24px;'>🔴 스터디 헬스 인증 완료!</span>
+        <div style='background-image: linear-gradient(to bottom, #fffaf0, #fff0f5); padding:40px; border-radius:20px;'>
+            <h1 style='text-align:center;'>📋 {name} 님의 보충 진단서</h1>
+            <hr>
+            <p><b>😖 증상:</b> {symptom}</p>
+            <p><b>🩺 건강 조언:</b> {symptom_tip}</p>
+            <p><b>🍱 식습관 피드백:</b> {diet_tip}</p>
+            <p><b>📖 공부 자세 조언:</b> {posture_tip}</p>
+            <p><b>🌈 추가 플랜:</b> 물 마시기 💧 / 스트레칭 🧘 / 충분한 수면 😴</p>
+            <br>
+            <p style='font-size:18px;'>🌟 <b>응원 메시지:</b> 오늘도 열심히 진단한 당신! 너무 멋져요 💖<br>
+            계속 건강 지키면서 멋진 공부 습관 만들어가요! 화이팅! 🚀✨</p>
+            <br><br>
+            <p style='text-align:right;'>✔️ 스터디업 병원 공식 도장 🖋️</p>
+        </div>
     """, unsafe_allow_html=True)
 
-    st.markdown("</div>", unsafe_allow_html=True)
-
-    # 진단서 저장 기능
-    if st.button("📥 진단서 저장하기"):
-        pdf = FPDF()
-        pdf.add_page()
-        pdf.set_font("Arial", size=12)
-        pdf.cell(200, 10, txt=f"{name}의 건강 보충 진단서", ln=True, align='C')
-        for k, v in st.session_state.answers.items():
-            pdf.cell(200, 10, txt=f"{k}: {v}", ln=True)
-        pdf.cell(200, 10, txt=f"공부 자세 조언: {posture_tip}", ln=True)
-        pdf.cell(200, 10, txt="응원 메시지: 오늘도 수고했어요! 화이팅!", ln=True)
-
-        filepath = f"{name}_진단서.pdf"
-        pdf.output(filepath)
-
-        with open(filepath, "rb") as f:
-            base64_pdf = base64.b64encode(f.read()).decode('utf-8')
-            href = f'<a href="data:application/octet-stream;base64,{base64_pdf}" download="{filepath}">📥 진단서 다운로드</a>'
-            st.markdown(href, unsafe_allow_html=True)
-
-# 끝!
+    st.markdown("<br><center><button onclick=\"window.location.reload()\">🔁 다시 시작하기</button></center>", unsafe_allow_html=True)
