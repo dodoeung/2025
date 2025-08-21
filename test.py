@@ -175,40 +175,77 @@ elif st.session_state.step == len(questions) + 2:
     tips = generate_tips(answers)
 
     st.markdown(f"""
-    <div style="
-        background-color:#fffaf0; 
-        border: 3px dashed #aaa; 
-        padding: 40px; 
-        font-family: 'Courier New', monospace; 
-        max-width: 700px; 
-        margin:auto;
-        box-shadow: 6px 6px 8px rgba(0,0,0,0.1);
-        border-radius: 15px;
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
+
+    .diagnosis-paper {{
+        background: linear-gradient(135deg, #fff0f5, #ffe4e1);
+        border: 5px solid #ff69b4;
+        border-radius: 20px;
+        padding: 40px 50px;
+        font-family: 'Indie Flower', cursive;
+        max-width: 700px;
+        margin: 30px auto;
+        box-shadow: 0 8px 15px rgba(255,105,180,0.4);
         position: relative;
-    ">
-        <h1 style="text-align:center; margin-bottom: 5px;">📋 {user['name']}님의 보충 진단서 📋</h1>
-        <hr>
-        <p><b>👧 이름:</b> {user['name']}  <b>🎂 나이:</b> {user['age']}세</p>
-        <p><b>🎓 학년:</b> {user['grade']}  <b>🚻 성별:</b> {user['gender']}</p>
-        <hr>
-        <p><b>⏰ 공부 시간:</b> {answers.get('study_time', '')}</p>
-        <p><b>🤸 운동 습관:</b> {answers.get('exercise', '')}</p>
-        <p><b>🍽️ 식습관:</b> {answers.get('diet', '')}</p>
-        <p><b>🪑 공부 자세:</b> {answers.get('posture', '')}</p>
-        <p><b>💢 느끼는 증상:</b> {answers.get('symptoms', '')}</p>
-        <hr>
-        <h3>💡 건강 조언</h3>
-        <pre style="white-space: pre-wrap; font-size:16px;">{tips}</pre>
-        <hr>
-        <h3>🥕 추천 음식 & 스트레칭</h3>
-        <p>🍌 바나나, 🥦 브로콜리, 🥛 우유</p>
-        <p>🧘‍♀️ 목/어깨 스트레칭, 손목 돌리기, 허리 펴기</p>
-        <hr>
-        <p style="text-align:right; font-size: 32px; color: red; font-weight:bold; user-select:none;">🖋️ 진단 완료 도장</p>
+        background-image: 
+          radial-gradient(circle at 20px 20px, #ffb6c1 2px, transparent 3px),
+          radial-gradient(circle at 40px 40px, #ffc0cb 2px, transparent 3px);
+        background-size: 60px 60px;
+    }}
+    .diagnosis-title {{
+        text-align: center;
+        font-size: 2.5rem;
+        color: #d81e5b;
+        margin-bottom: 15px;
+        letter-spacing: 3px;
+        text-shadow: 2px 2px 4px #f8bbd0;
+    }}
+    .section-title {{
+        color: #d81e5b;
+        font-size: 1.6rem;
+        margin-top: 25px;
+        margin-bottom: 10px;
+        border-bottom: 2px solid #f48fb1;
+        padding-bottom: 5px;
+    }}
+    .info-line {{
+        font-size: 1.2rem;
+        margin: 8px 0;
+        color: #800040;
+    }}
+    .stamp {{
+        position: absolute;
+        bottom: 25px;
+        right: 40px;
+        font-size: 5rem;
+        color: #ff1493;
+        opacity: 0.8;
+        user-select:none;
+        transform: rotate(-15deg);
+        text-shadow: 2px 2px 5px #ff69b4;
+    }}
+    </style>
+
+    <div class="diagnosis-paper">
+        <h1 class="diagnosis-title">📋 {user['name']}님의 보충 진단서 📋</h1>
+        <div class="info-line"><b>👧 이름:</b> {user['name']} &nbsp;&nbsp;&nbsp; <b>🎂 나이:</b> {user['age']}세</div>
+        <div class="info-line"><b>🎓 학년:</b> {user['grade']} &nbsp;&nbsp;&nbsp; <b>🚻 성별:</b> {user['gender']}</div>
+
+        <div class="section-title">📊 생활 습관</div>
+        <div class="info-line">⏰ 공부 시간: {answers.get('study_time', '')}</div>
+        <div class="info-line">🤸 운동 습관: {answers.get('exercise', '')}</div>
+        <div class="info-line">🍽️ 식습관: {answers.get('diet', '')}</div>
+        <div class="info-line">🪑 공부 자세: {answers.get('posture', '')}</div>
+        <div class="info-line">💢 느끼는 증상: {answers.get('symptoms', '')}</div>
+
+        <div class="section-title">💡 건강 조언</div>
+        <pre style="font-family: 'Indie Flower', cursive; font-size:1.1rem; white-space: pre-wrap; color:#4a0033;">{tips}</pre>
+
+        <div class="section-title">🥕 추천 음식 & 스트레칭</div>
+        <div class="info-line">🍌 바나나, 🥦 브로콜리, 🥛 우유</div>
+        <div class="info-line">🧘‍♀️ 목/어깨 스트레칭, 손목 돌리기, 허리 펴기</div>
+
+        <div class="stamp">🖋️</div>
     </div>
     """, unsafe_allow_html=True)
-
-    if st.button("🔁 다시 시작하기"):
-        for key in ['step', 'user_info', 'answers']:
-            del st.session_state[key]
-        st.rerun()
