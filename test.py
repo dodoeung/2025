@@ -35,7 +35,7 @@ questions = [
     {
         'key': 'symptoms',
         'question': '요즘 어떤 증상이 있나요? 🩺',
-        'options': ['손목 저림 ✋', '어깨 결림 🧍‍♂️', '종아리 붓기 🦵', '눈 피로 👀', '두통 🤯', '허리통증 🧍‍♀️', '목 통증 🦒', '없음 😊']
+        'options': ['손목 저림 ✋', '어깨 결림 🧍‍♂️', '종아리 붓기 🦵', '눈 피로 👀', '두통 🤯', '허리통증 🧍‍♀️', '목 통증 🦒']
     },
 ]
 
@@ -43,7 +43,7 @@ questions = [
 posture_feedback = {
     '바른 자세 👍': "🪑 바른 자세를 유지하고 있어요! 아주 좋아요! 꾸준히 해주세요!",
     '구부정한 자세 😓': "💻 허리와 목이 아플 수 있으니, 바른 자세로 앉아보세요.",
-    '누워서 😴': "📱 누워서 공부하면 집중력이 떨어지고 건강에 안 좋아요. 절대 누워서 공부는 하지 마세요!",
+    '누워서 😴': "📱 누워서 공부하면 집중력이 떨어지고 건강에 안 좋아요.절대 누워서 공부는 하지 마세요.!",
     '책상 앞에 엎드림 😵': "😵 너무 힘든 자세에요. 바른 자세를 권장해요!"
 }
 
@@ -51,12 +51,11 @@ posture_feedback = {
 symptom_feedback = {
     '손목 저림 ✋': "손목을 주물러 풀어주거나 천천히 돌리면서 스트레칭을 해주고 잠시 펜을 놓고 손의 휴식을 주세요.",
     '어깨 결림 🧍‍♂️': "어깨 돌리기와 스트레칭을 자주 해주세요.",
-    '종아리 붓기 🦵': "가벼운 다리 스트레칭과 자주 일어나 걷기를 추천하고, 집에서는 폼롤러를 통해서 다리 붓기를 빼주면 좋아요.",
+    '종아리 붓기 🦵': "가벼운 다리 스트레칭과 자주 일어나 걷기를 추천하고, 집에서는 폼롤러를 통해서 다리 붓기를 빼주면 좋을 것 같아요.",
     '눈 피로 👀': "20분마다 먼 곳을 바라보며 눈 휴식을 취하거나 초록나무를 보면서 눈을 정화해요.",
-    '두통 🤯': "잠시 눈을 감고 1분 동안 휴식을 취하고 수분 섭취가 중요해요.",
+    '두통 🤯': "잠시 눈을 감고 1분동안 휴식을 취하고 수분 섭취가 중요해요.",
     '허리통증 🧍‍♀️': "올바른 자세와 허리 스트레칭을 해주세요.",
-    '목 통증 🦒': "목을 오른쪽으로 한 바퀴, 왼쪽으로 한 바퀴 돌리면서 스트레칭하고 자세 교정을 권장해요.",
-    '없음 😊': "증상이 없다니 정말 다행이에요! 계속 건강하게 공부하세요!"
+    '목 통증 🦒': "목을 오른쪽으로 한 바퀴 왼쪽으로 한바퀴 돌리면서 스트레칭하고 자세 교정을 권장해요."
 }
 
 # 식습관별 조언
@@ -100,9 +99,6 @@ def generate_tips(answers):
     if '운동 안 함' in exercise:
         tips.append("🔹 운동: 가벼운 운동부터 시작해보세요!")
 
-    # 공부 자세 조언 + 격려
-    tips.append("💪 꾸준한 노력으로 건강도 공부도 모두 잡을 수 있어요! 응원합니다! 🎉")
-
     if not tips:
         tips.append("👍 건강한 생활 습관을 잘 유지하고 있네요!")
 
@@ -133,46 +129,44 @@ if st.session_state.step == 0:
                     'gender': gender
                 }
                 st.session_state.step = 1
-                st.experimental_rerun()
+                st.rerun()
 
 # 1~N단계: 질문 화면 (한 번에 하나씩)
 elif 1 <= st.session_state.step <= len(questions):
     q = questions[st.session_state.step - 1]
     st.markdown(f"<h2 style='text-align:center; color:#ff69b4;'>❓ {q['question']}</h2>", unsafe_allow_html=True)
-    st.markdown("<div style='text-align:center; font-size:28px;'>💗💗💗💗💗</div>", unsafe_allow_html=True)
+    st.markdown("<div style='text-align:center; font-size:24px;'>💗💗💗💗💗</div>", unsafe_allow_html=True)
 
-    cols = st.columns(len(q['options']))
-    for idx, option in enumerate(q['options']):
-        with cols[idx]:
-            if st.button(f"💖 {option}", key=f"{q['key']}_{option}"):
-                st.session_state.answers[q['key']] = option
-                st.session_state.step += 1
-                st.experimental_rerun()
+    for option in q['options']:
+        if st.button(f"💖 {option}"):
+            st.session_state.answers[q['key']] = option
+            st.session_state.step += 1
+            st.rerun()
 
-# 결과 요약 (말풍선 스타일)
+# 결과 요약 (말풍선)
 elif st.session_state.step == len(questions) + 1:
     user = st.session_state.user_info
     answers = st.session_state.answers
     tips = generate_tips(answers)
 
     st.markdown(f"""
-    <div style='background:#D1F2EB; padding:30px; border-radius:30px; max-width:600px; margin:auto; box-shadow: 0 8px 20px rgba(0,0,0,0.1);'>
-        <h2 style='text-align:center; color:#d81e5b;'>💬 {user['name']}님의 건강 상태 진단 결과 💬</h2>
-        <ul style='font-size:18px; color:#333;'>
+    <div style='background:#D1F2EB; padding:30px; border-radius:30px; max-width:600px; margin:auto;'>
+        <h2 style='text-align:center;'>💬 {user['name']}님의 건강 상태 진단 결과 💬</h2>
+        <ul style='font-size:18px;'>
             <li>📚 공부 시간: {answers.get('study_time', '')}</li>
             <li>🏃 운동: {answers.get('exercise', '')}</li>
             <li>🍽️ 식사: {answers.get('diet', '')}</li>
             <li>🪑 공부 자세: {answers.get('posture', '')}</li>
             <li>🩺 증상: {answers.get('symptoms', '')}</li>
         </ul>
-        <h3 style='color:#d81e5b;'>💡 맞춤 건강 조언 💡</h3>
-        <pre style='white-space: pre-wrap; font-size:16px; color:#800040;'>{tips}</pre>
+        <h3>💡 맞춤 건강 조언 💡</h3>
+        <pre style='white-space: pre-wrap; font-size:16px;'>{tips}</pre>
     </div>
     """, unsafe_allow_html=True)
 
     if st.button("📄 나의 보충 플랜카드 진단서 보기"):
         st.session_state.step += 1
-        st.experimental_rerun()
+        st.rerun()
 
 # 진단서 페이지
 elif st.session_state.step == len(questions) + 2:
@@ -181,83 +175,40 @@ elif st.session_state.step == len(questions) + 2:
     tips = generate_tips(answers)
 
     st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap');
-
-    .diagnosis-paper {{
-        background: linear-gradient(135deg, #fff0f5, #ffe4e1);
-        border: 5px solid #ff69b4;
-        border-radius: 20px;
-        padding: 40px 50px;
-        font-family: 'Indie Flower', cursive;
-        max-width: 700px;
-        margin: 30px auto;
-        box-shadow: 0 8px 15px rgba(255,105,180,0.4);
+    <div style="
+        background-color:#fffaf0; 
+        border: 3px dashed #aaa; 
+        padding: 40px; 
+        font-family: 'Courier New', monospace; 
+        max-width: 700px; 
+        margin:auto;
+        box-shadow: 6px 6px 8px rgba(0,0,0,0.1);
+        border-radius: 15px;
         position: relative;
-        background-image: 
-          radial-gradient(circle at 20px 20px, #ffb6c1 2px, transparent 3px),
-          radial-gradient(circle at 40px 40px, #ffc0cb 2px, transparent 3px);
-        background-size: 60px 60px;
-    }}
-    .diagnosis-title {{
-        text-align: center;
-        font-size: 2.5rem;
-        color: #d81e5b;
-        margin-bottom: 15px;
-        letter-spacing: 3px;
-        text-shadow: 2px 2px 4px #f8bbd0;
-    }}
-    .section-title {{
-        color: #d81e5b;
-        font-size: 1.6rem;
-        margin-top: 25px;
-        margin-bottom: 10px;
-        border-bottom: 2px solid #f48fb1;
-        padding-bottom: 5px;
-    }}
-    .info-line {{
-        font-size: 1.2rem;
-        margin: 8px 0;
-        color: #800040;
-    }}
-    .stamp {{
-        position: absolute;
-        bottom: 25px;
-        right: 40px;
-        font-size: 5rem;
-        color: #ff1493;
-        opacity: 0.8;
-        user-select:none;
-        transform: rotate(-15deg);
-        text-shadow: 2px 2px 5px #ff69b4;
-    }}
-    </style>
-
-    <div class="diagnosis-paper">
-        <h1 class="diagnosis-title">📋 {user['name']}님의 보충 진단서 📋</h1>
-        <div class="info-line"><b>👧 이름:</b> {user['name']} &nbsp;&nbsp;&nbsp; <b>🎂 나이:</b> {user['age']}세</div>
-        <div class="info-line"><b>🎓 학년:</b> {user['grade']} &nbsp;&nbsp;&nbsp; <b>🚻 성별:</b> {user['gender']}</div>
-
-        <div class="section-title">📊 생활 습관</div>
-        <div class="info-line">⏰ 공부 시간: {answers.get('study_time', '')}</div>
-        <div class="info-line">🤸 운동 습관: {answers.get('exercise', '')}</div>
-        <div class="info-line">🍽️ 식습관: {answers.get('diet', '')}</div>
-        <div class="info-line">🪑 공부 자세: {answers.get('posture', '')}</div>
-        <div class="info-line">💢 느끼는 증상: {answers.get('symptoms', '')}</div>
-
-        <div class="section-title">💡 건강 조언</div>
-        <pre style="font-family: 'Indie Flower', cursive; font-size:1.1rem; white-space: pre-wrap; color:#4a0033;">{tips}</pre>
-
-        <div class="section-title">🥕 추천 음식 & 스트레칭</div>
-        <div class="info-line">🍌 바나나, 🥦 브로콜리, 🥛 우유</div>
-        <div class="info-line">🧘‍♀️ 목/어깨 스트레칭, 손목 돌리기, 허리 펴기</div>
-
-        <div class="stamp">🖋️</div>
+    ">
+        <h1 style="text-align:center; margin-bottom: 5px;">📋 {user['name']}님의 보충 진단서 📋</h1>
+        <hr>
+        <p><b>👧 이름:</b> {user['name']}  <b>🎂 나이:</b> {user['age']}세</p>
+        <p><b>🎓 학년:</b> {user['grade']}  <b>🚻 성별:</b> {user['gender']}</p>
+        <hr>
+        <p><b>⏰ 공부 시간:</b> {answers.get('study_time', '')}</p>
+        <p><b>🤸 운동 습관:</b> {answers.get('exercise', '')}</p>
+        <p><b>🍽️ 식습관:</b> {answers.get('diet', '')}</p>
+        <p><b>🪑 공부 자세:</b> {answers.get('posture', '')}</p>
+        <p><b>💢 느끼는 증상:</b> {answers.get('symptoms', '')}</p>
+        <hr>
+        <h3>💡 건강 조언</h3>
+        <pre style="white-space: pre-wrap; font-size:16px;">{tips}</pre>
+        <hr>
+        <h3>🥕 추천 음식 & 스트레칭</h3>
+        <p>🍌 바나나, 🥦 브로콜리, 🥛 우유</p>
+        <p>🧘‍♀️ 목/어깨 스트레칭, 손목 돌리기, 허리 펴기</p>
+        <hr>
+        <p style="text-align:right; font-size: 32px; color: red; font-weight:bold; user-select:none;">🖋️ 진단 완료 도장</p>
     </div>
     """, unsafe_allow_html=True)
 
     if st.button("🔁 다시 시작하기"):
         for key in ['step', 'user_info', 'answers']:
-            if key in st.session_state:
-                del st.session_state[key]
-        st.experimental_rerun()
+            del st.session_state[key]
+        st.rerun()
